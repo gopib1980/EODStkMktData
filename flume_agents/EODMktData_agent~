@@ -1,0 +1,32 @@
+# a Flume agent configuration file to watch a spool directory and stream it to hdfs
+
+EODAgent.sources  = lnx_src
+EODAgent.sinks    = hdfs_snk
+EODAgent.channels = chnl
+
+# Configure source
+
+EODAgent.sources.lnx_src.type  = spoolDir
+EODAgent.sources.lnx_src.spoolDir = /data/EODMktData
+EODAgent.sources.lnx_src.fileHeader = true
+
+# Configure sink
+
+
+EODAgent.sinks.hdfs_snk.type = hdfs
+EODAgent.sinks.hdfs_snk.hdfs.path = hdfs://node1.gopinet.com:8020/data/EODMktData
+EODAgent.sinks.hdfs_snk.hdfs.filePrefix = seqs
+EODAgent.sinks.hdfs_snk.hdfs.fileType = DataStream
+EODAgent.sinks.hdfs_snk.hdfs.rollInterval = 10
+EODAgent.sinks.hdfs_snk.hdfs.rollCount = 0
+EODAgent.sinks.hdfs_snk.hdfs.rollSize = 50000
+
+
+# Configure channel
+EODAgent.channels.chnl.type = memory
+EODAgent.channels.chnl.capacity = 1000000
+EODAgent.channels.chnl.transactionCapacity = 100000
+
+# Binding the source and sink to the channel 
+EODAgent.sources.lnx_src.channels = chnl
+EODAgent.sinks.hdfs_snk.channel = chnl
