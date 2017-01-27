@@ -1,4 +1,4 @@
-name := "MyProject"
+name := "EODDataMiner"
 
 version := "1.0"
 

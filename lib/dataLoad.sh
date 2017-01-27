@@ -17,11 +17,11 @@ fi
 echo "\nStarted loading the files for Exchange" "$1" 
 
 if [ "$1" = "NYSE" ]; then
-	hive -f /projects/EodDataProcessing/sql/dataLoad_NYSE.sql
+	hive -f /projects/EODStkMktData/sql/dataLoad_NYSE.sql
 fi
 
 if [ "$1" = "NASDAQ" ]; then
-	hive -f /projects/EodDataProcessing/sql/dataLoad_NASDAQ.sql
+	hive -f /projects/EODStkMktData/sql/dataLoad_NASDAQ.sql
 fi
 
 rc=$?;echo "Exit code is $rc"; if [ "$rc" != 0 ]; then exit $rc; fi

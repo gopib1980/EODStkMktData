@@ -32,15 +32,16 @@ object EODDataMinerApp {
     //val tokenized = sc.textFile(args(0)).map(_.split(",")).map(x=>(x(0),x(6).toInt)).reduceByKey(_+_)
     //val totalRecords = sc.textFile(args(0)).map(_.split(","))    
     val slicedRecords  = sc.textFile(args(0)).map(_.split(",")).filter(x=>(x(1)<=endDate.toString)).filter(x=>(x(1)>=startDate.toString))
-
+ 
     val volumeStatsRDD = slicedRecords.map(x=>(x(0),x(6).toInt)).aggregateByKey((0,0)) ((a,b) => (a._1+b,a._2+1),(a,b) => (a._1+b._1,a._2+b._2)).mapValues(a => (a._1,a._2,1.0 *a._1/a._2))
     
     val monthlyHighRDD = slicedRecords.map(x=>(x(0),x(3).toFloat)).reduceByKey(math.max(_, _))
     val monthlyLowRDD  = slicedRecords.map(x=>(x(0),x(4).toFloat)).reduceByKey(math.min(_, _))
-    val priceRangeRDD  = monthlyHighRDD.join(monthlyLowRDD)
+    val avgVolStatsRDD = slicedRecords.map(x=>(x(0),x(6).toInt)).aggregateByKey((0,0)) ((a,b) => (a._1+b,a._2+1),(a,b) => (a._1+b._1,a._2+b._2)).mapValues(a => (a._1,a._2,1.0 *a._1/a._2))    
+    val priceRangeRDD  = monthlyHighRDD.join(monthlyLowRDD) 
 
-    val newSlcRecords  = sc.textFile(args(0)).map(_.split(",")).filter{case (x) => dates.contains(x(1))}.map(x=>(x(0),x(1)))
-    //val avgPrcStatsRDD = slicedRecords.map(x=>(x(0),x(6).toInt)).aggregateByKey((0,0)) ((a,b) => (a._1+b,a._2+1),(a,b) => (a._1+b._1,a._2+b._2)).mapValues(a => (a._1,a._2,1.0 *a._1/a._2))
+    val newSlcRecords  = sc.textFile(args(0)).map(_.split(",")).filter{case (x) => dates.contains(x(1))}.map(x=>(x(0),x(5).toFloat)).groupByKey().map(x=> (x._1,calcChange(x._2)))
+
 
     //val maxDailyDiffRDD = aMonthRecords.map(x=>(x(0),x(5).toFloat-x(2).toFloat)).reduceByKey(math.max(_, _))
     //val calcedRDD  = totalVolumeRDD.join(monthlyHighRDD).join(monthlyLowRDD).sortByKey().map(x=>(x._1,x._2._1._1,x._2._1._2,x._2._2))
@@ -48,12 +49,23 @@ object EODDataMinerApp {
 
     //System.out.println("Total Records are " + totalRecords + " a Month records " + aMonthRecords);
     
-    System.out.println(newSlcRecords.collect().mkString(", "))
-    System.out.println(priceRangeRDD.sortByKey().collect().mkString(", "))
-
+    //System.out.println(newSlcRecords.sortByKey().collect().mkString(", "))
+    //System.out.println(priceRangeRDD.sortByKey().collect().mkString(", "))
+    newSlcRecords.saveAsTextFile("/data/processed/NASDAQ/pricechange.txt")
+    avgVolStatsRDD.map(x=>f"${x._1},${x._2._1},${x._2._3}%13.2f").saveAsTextFile("/data/processed/NASDAQ/Volume.txt")
+    priceRangeRDD.saveAsTextFile("/data/processed/NASDAQ/price.txt")
   }
   def dateMatch( a: String, dates: List[String]) = {
 	a==dates(0) || a==dates(1)
   }
-
+  def calcChange( a: Iterable[Float]) = {
+	val it = a.iterator
+	val startClosePrice = it.next()
+	if (it.hasNext)
+        {	val endClosePrice  = it.next()
+	        ((endClosePrice-startClosePrice)*100/startClosePrice)
+        }
+	else
+	 	0
+  }
 }
