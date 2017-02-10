@@ -1,4 +1,4 @@
-use tradingdb;
+use stocks;
 
 -- create an external hive table to manage the statistics.
 
