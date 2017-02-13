@@ -52,7 +52,7 @@ echo "Completed loading $2 data for $1 exchange"
 # Call the Spark Scala code to process the market data and generate statistics
 echo "\nStarted creating the statistics for $1 exchange" 
 
-/usr/bin/spark-submit --class "EODDataMinerApp" --master yarn --deploy-mode client --executor-cores 2 $MYPROJLIB/target/scala-2.10/eoddataminer_2.10-1.0.jar /user/hive/warehouse/tradingdb.db/eod_stock_data $1 $ydate
+/usr/bin/spark-submit --class "EODDataMinerApp" --master yarn --deploy-mode client --executor-cores 2 $MYPROJLIB/target/scala-2.10/eoddataminer_2.10-1.0.jar /user/hive/warehouse/stocks.db/eod_stock_data $1 $ydate
  
 rc=$?; if [ "$rc" != 0 ]; then echo "Non zero return code $rc"; exit $rc; fi
 
